@@ -17,8 +17,8 @@
 #define MAX_FD 65536
 #define MAX_EVENT_NUMBER 10000
 
-extern int addfd( int epollfd, int fd, bool one_shot );
-extern int removefd( int epollfd, int fd );
+extern void addfd( int epollfd, int fd, bool one_shot );
+extern void removefd( int epollfd, int fd );
 
 void addsig( int sig, void( handler )(int), bool restart = true )
 {
@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
     const char* ip = argv[1];
     int port = atoi( argv[2] );
 
-    addsig( SIGPIPE, SIG_IGN ); //设置信号的处理函数
+    addsig( SIGPIPE, SIG_IGN ); //脡猫脰脙脨脜潞脜碌脛麓娄脌铆潞炉脢媒
 
     threadpool< http_conn >* pool = NULL;
     try
