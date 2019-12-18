@@ -7,11 +7,11 @@
 #include <pthread.h>
 #include "locker.h"
 
-template< typename T >
+template< typename T > // http_requests
 class threadpool
 {
 public:
-    threadpool( int thread_number = 8, int max_requests = 10000 );
+    threadpool( int thread_number = 8, int max_requests = 10000 ); // 线程数，最大请求数
     ~threadpool();
     bool append( T* request );
 
