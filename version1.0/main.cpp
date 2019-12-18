@@ -14,10 +14,10 @@
 #include "threadpool.h"
 #include "http_conn.h"
 
-#define MAX_FD 65536
-#define MAX_EVENT_NUMBER 10000
+#define MAX_FD 65536  //最大文件描述符
+#define MAX_EVENT_NUMBER 10000 // 最打事件数
 
-extern void addfd( int epollfd, int fd, bool one_shot );
+extern void addfd( int epollfd, int fd, bool one_shot );  // 实现在httpconnection
 extern void removefd( int epollfd, int fd );
 
 void addsig( int sig, void( handler )(int), bool restart = true )
@@ -27,7 +27,7 @@ void addsig( int sig, void( handler )(int), bool restart = true )
     sa.sa_handler = handler;
     if( restart )
     {
-        sa.sa_flags |= SA_RESTART;
+        sa.sa_flags |= SA_RESTART; //重新调用被该信号终止的系统调用
     }
     sigfillset( &sa.sa_mask );
     assert( sigaction( sig, &sa, NULL ) != -1 );
@@ -41,9 +41,9 @@ void show_error( int connfd, const char* info )
 }
 
 
-int main( int argc, char* argv[] )
+int main( int argc, char* argv[] ) 
 {
-    if( argc <= 2 )
+    if( argc != 2 )
     {
         printf( "usage: %s ip_address port_number\n", basename( argv[0] ) );
         return 1;
@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
     const char* ip = argv[1];
     int port = atoi( argv[2] );
 
-    addsig( SIGPIPE, SIG_IGN ); //ÉèÖÃÐÅºÅµÄ´¦Àíº¯Êý
+    addsig( SIGPIPE, SIG_IGN ); //忽略SIGPIPE
 
     threadpool< http_conn >* pool = NULL;
     try
