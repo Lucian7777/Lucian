@@ -52,7 +52,13 @@ int main( int argc, char* argv[] )
     int port = atoi( argv[2] );
 
     addsig( SIGPIPE, SIG_IGN ); //忽略SIGPIPE
-
+	sigset_t signal_mask;
+	sigemptyset(&signal_mask);
+	sigaddset(&signal_mask, SIGPIPE);
+	int rc = pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
+	if (rc != 0) {
+		printf("block sigpipe error\n");
+	}
     threadpool< http_conn >* pool = NULL;
     try
     {
@@ -70,7 +76,7 @@ int main( int argc, char* argv[] )
     int listenfd = socket( PF_INET, SOCK_STREAM, 0 );
     assert( listenfd >= 0 );
     struct linger tmp = { 1, 0 };
-    setsockopt( listenfd, SOL_SOCKET, SO_LINGER, &tmp, sizeof( tmp ) );
+    setsockopt( listenfd, SOL_SOCKET, SO_LINGER, &tmp, sizeof( tmp ) );// 延迟关闭
 
     int ret = 0;
     struct sockaddr_in address;
@@ -125,7 +131,7 @@ int main( int argc, char* argv[] )
             {
                 users[sockfd].close_conn();
             }
-            else if( events[i].events & EPOLLIN )
+            else if( events[i].events & EPOLLIN ) // 读事件
             {
                 if( users[sockfd].read() )
                 {
@@ -136,7 +142,7 @@ int main( int argc, char* argv[] )
                     users[sockfd].close_conn();
                 }
             }
-            else if( events[i].events & EPOLLOUT )
+            else if( events[i].events & EPOLLOUT ) // 写事件
             {
                 if( !users[sockfd].write() )
                 {
