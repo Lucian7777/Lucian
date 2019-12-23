@@ -46,14 +46,14 @@ private:
     void init();
     HTTP_CODE process_read();
     bool process_write( HTTP_CODE ret );
-
+	// 解析请求
     HTTP_CODE parse_request_line( char* text );
     HTTP_CODE parse_headers( char* text );
     HTTP_CODE parse_content( char* text );
     HTTP_CODE do_request();
     char* get_line() { return m_read_buf + m_start_line; }
     LINE_STATUS parse_line();
-
+	//应答
     void unmap();
     bool add_response( const char* format, ... );
     bool add_content( const char* content );
@@ -160,9 +160,9 @@ void http_conn::init(int sockfd, const sockaddr_in& addr)
 	m_address = addr;
 	int error = 0;
 	socklen_t len = sizeof(error);
-	getsockopt(m_sockfd, SOL_SOCKET, SO_ERROR, &error, &len);
+	getsockopt(m_sockfd, SOL_SOCKET, SO_ERROR, &error, &len); // 获取并清除socket状态
 	int reuse = 1;
-	setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+	setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)); // 重用地址
 	addfd(m_epollfd, sockfd, true);
 	m_user_count++;
 
@@ -198,13 +198,13 @@ http_conn::LINE_STATUS http_conn::parse_line()
 		{
 			if ((m_checked_idx + 1) == m_read_idx)
 			{
-				return LINE_OPEN;
+				return LINE_OPEN; //没有读取到完整行
 			}
 			else if (m_read_buf[m_checked_idx + 1] == '\n')
 			{
 				m_read_buf[m_checked_idx++] = '\0';
 				m_read_buf[m_checked_idx++] = '\0';
-				return LINE_OK;
+				return LINE_OK; //完整行
 			}
 
 			return LINE_BAD;
@@ -254,7 +254,7 @@ bool http_conn::read()
 }
 
 http_conn::HTTP_CODE http_conn::parse_request_line(char* text)
-{
+{ // method url http协议
 	m_url = strpbrk(text, " \t");
 	if (!m_url)
 	{
@@ -316,7 +316,7 @@ http_conn::HTTP_CODE http_conn::parse_headers(char* text)
 		}
 
 		return GET_REQUEST;
-	}
+	} // 处理各种字段
 	else if (strncasecmp(text, "Connection:", 11) == 0)
 	{
 		text += 11;
@@ -366,14 +366,14 @@ http_conn::HTTP_CODE http_conn::process_read()
 
 	while (((m_check_state == CHECK_STATE_CONTENT) && (line_status == LINE_OK))
 		|| ((line_status = parse_line()) == LINE_OK))
-	{
+	{ // 取出完整行或者是刚进入
 		text = get_line();
 		m_start_line = m_checked_idx;
 		printf("got 1 http line: %s\n", text);
 
 		switch (m_check_state)
 		{
-		case CHECK_STATE_REQUESTLINE:
+		case CHECK_STATE_REQUESTLINE:  //请求行分析
 		{
 			ret = parse_request_line(text);
 			if (ret == BAD_REQUEST)
@@ -382,7 +382,7 @@ http_conn::HTTP_CODE http_conn::process_read()
 			}
 			break;
 		}
-		case CHECK_STATE_HEADER:
+		case CHECK_STATE_HEADER: //报文头处理
 		{
 			ret = parse_headers(text);
 			if (ret == BAD_REQUEST)
@@ -625,7 +625,7 @@ bool http_conn::process_write(HTTP_CODE ret)
 	return true;
 }
 
-void http_conn::process()
+void http_conn::process()  // 由threadpool进入
 {
 	HTTP_CODE read_ret = process_read();
 	if (read_ret == NO_REQUEST)
