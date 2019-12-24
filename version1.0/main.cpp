@@ -73,8 +73,8 @@ int main( int argc, char* argv[] )
     assert( users );
     int user_count = 0;
 
-    int listenfd = socket( PF_INET, SOCK_STREAM, 0 );
-    assert( listenfd >= 0 );
+    assert( (listenfd = socket( PF_INET, SOCK_STREAM, 0 ) >= 0 )
+
     struct linger tmp = { 1, 0 };
     setsockopt( listenfd, SOL_SOCKET, SO_LINGER, &tmp, sizeof( tmp ) );// 延迟关闭
 
@@ -85,11 +85,9 @@ int main( int argc, char* argv[] )
     inet_pton( AF_INET, ip, &address.sin_addr );
     address.sin_port = htons( port );
 
-    ret = bind( listenfd, ( struct sockaddr* )&address, sizeof( address ) );
-    assert( ret >= 0 );
+    assert( (ret = bind( listenfd, ( struct sockaddr* )&address, sizeof( address ) )) >= 0 );
 
-    ret = listen( listenfd, 5 );
-    assert( ret >= 0 );
+    asert ( (ret = listen( listenfd, 5 )) >= 0 );
 
     epoll_event events[ MAX_EVENT_NUMBER ];
     int epollfd = epoll_create( 5 );
