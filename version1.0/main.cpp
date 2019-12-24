@@ -52,13 +52,7 @@ int main( int argc, char* argv[] )
     int port = atoi( argv[2] );
 
     addsig( SIGPIPE, SIG_IGN ); //忽略SIGPIPE
-	sigset_t signal_mask;
-	sigemptyset(&signal_mask);
-	sigaddset(&signal_mask, SIGPIPE);
-	int rc = pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
-	if (rc != 0) {
-		printf("block sigpipe error\n");
-	}
+
     threadpool< http_conn >* pool = NULL;
     try
     {
