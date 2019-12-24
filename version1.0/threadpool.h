@@ -43,7 +43,13 @@ threadpool< T >::threadpool( int thread_number, int max_requests ) :
     {
         throw std::exception();
     }
-
+	sigset_t signal_mask;
+	sigemptyset(&signal_mask);
+	sigaddset(&signal_mask, SIGPIPE);
+	int rc = pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
+	if (rc != 0) {
+		printf("block sigpipe error\n");
+	}
     for ( int i = 0; i < thread_number; ++i )
     {
         printf( "create the %dth thread\n", i );
